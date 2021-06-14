@@ -1,0 +1,12 @@
+## Interface: 20501
+
+## Title: HeroicMatcher
+## Version: 0.0.1
+## Author: Epenance
+## Notes: Addon to help identify what dungeons you as a group can do.
+## SavedVariables: HeroicMatcherDB
+## SavedVariablesPerCharacter: HeroicMatcherCharDB
+
+embeds.xml
+
+HeroicMatcher.lua

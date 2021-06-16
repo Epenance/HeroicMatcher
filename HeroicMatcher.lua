@@ -13,7 +13,11 @@
 
 -- GROUP_ROSTER_CHANGED / PARTY_MEMBERS_CHANGED
 
-HeroicMatcher = LibStub("AceAddon-3.0"):NewAddon("HeroicMatcher", "AceTimer-3.0", "AceConsole-3.0")
+HeroicMatcher = LibStub("AceAddon-3.0"):NewAddon("HeroicMatcher", "AceTimer-3.0", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0")
+
+local AceGUI = LibStub("AceGUI-3.0")
+
+local playerDungeonStatus = {}
 
 local options = {
     name = 'HeroicMatcher',
@@ -80,6 +84,8 @@ function HeroicMatcher:ChatCommand(input)
     else
         if(input:trim() == 'opt') then
             InterfaceOptionsFrame_OpenToCategory(self.optionsFrame);
+        elseif (input:trim() == 'open')  then
+            HeroicMatcher:OpenFrame()
         else
             print('Did you mean "/hm opt"? To start simply type "/hm"');
         end
@@ -91,13 +97,7 @@ function HeroicMatcher:SyncStatus()
     reveredFactions = HeroicMatcher:GetReveredFactions()
     heroicDungeons = HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
 
-    for dungeonName, status in pairs(heroicDungeons) do
-        if status == "Available" then
-            print(dungeonName.." is available")
-        else
-            print(dungeonName.." not available: "..status)
-        end
-    end
+    playerDungeonStatus = heroicDungeons
 end
 
 function HeroicMatcher:GetReveredFactions()
@@ -109,7 +109,7 @@ function HeroicMatcher:GetReveredFactions()
 
         if hasValue(factionsThatMatter, name) and earnedValue >= 21000 then
             table.insert(reveredFactions, name)
-            print("Faction: " .. name .. " - " .. earnedValue)
+            -- print("Faction: " .. name .. " - " .. earnedValue)
         end
     end
 
@@ -158,7 +158,7 @@ function HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
 
     availableDungeons = {}
 
-    print("Heroic Dungeons")
+    -- print("Heroic Dungeons")
 
     for key, dungeon in pairs(heroicDungeons) do
         availableDungeons[key] = "Missing reputation"
@@ -174,11 +174,48 @@ function HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
         if isAvailable == "Available" then
             if hasValue(savedHeroics, dungeon) then
                 availableDungeons[dungeon] = "Saved"
-                print("Saved for "..dungeon)
+                -- print("Saved for "..dungeon)
             end
         end
 
     end
 
     return availableDungeons
+end
+
+function HeroicMatcher:OpenFrame()
+    HeroicMatcher:SyncStatus()
+
+    hmlocal_frame = AceGUI:Create("Frame")
+    hmlocal_frame:SetTitle("  HeroicMatcher")
+    hmlocal_frame:SetStatusText("Wuhuuu")
+
+    hmlocal_frame:SetHeight(950)
+    hmlocal_frame:SetWidth(950)
+
+    local testText = AceGUI:Create("Label")
+    testText:SetText("Hellfire Ramparts")
+    testText:SetColor(0, 255, 0)
+
+    hmlocal_frame:AddChild(testText)
+
+    local syncDataBtn = AceGUI:Create("Button")
+    syncDataBtn:SetText("Sync data")
+    syncDataBtn:SetCallback("OnClick", function()
+
+    end)
+    hmlocal_frame:AddChild(syncDataBtn)
+
+
+    for dungeonName, status in pairs(playerDungeonStatus) do
+        if status == "Available" then
+            print(dungeonName.." is available")
+        else
+            print(dungeonName.." not available: "..status)
+        end
+    end
+end
+
+function HeroicMatcher:AddDungeonInfoToFrame(frame)
+
 end

@@ -188,34 +188,55 @@ function HeroicMatcher:OpenFrame()
 
     hmlocal_frame = AceGUI:Create("Frame")
     hmlocal_frame:SetTitle("  HeroicMatcher")
-    hmlocal_frame:SetStatusText("Wuhuuu")
+    hmlocal_frame:SetStatusText("Made by Epenance")
 
     hmlocal_frame:SetHeight(950)
     hmlocal_frame:SetWidth(950)
 
-    local testText = AceGUI:Create("Label")
-    testText:SetText("Hellfire Ramparts")
-    testText:SetColor(0, 255, 0)
-
-    hmlocal_frame:AddChild(testText)
+    HeroicMatcher:AddDungeonInfoToFrame(hmlocal_frame)
 
     local syncDataBtn = AceGUI:Create("Button")
     syncDataBtn:SetText("Sync data")
     syncDataBtn:SetCallback("OnClick", function()
+        --
 
     end)
     hmlocal_frame:AddChild(syncDataBtn)
-
-
-    for dungeonName, status in pairs(playerDungeonStatus) do
-        if status == "Available" then
-            print(dungeonName.." is available")
-        else
-            print(dungeonName.." not available: "..status)
-        end
-    end
 end
 
 function HeroicMatcher:AddDungeonInfoToFrame(frame)
+    availableDungeons = {}
+    unavailableDungeons = {}
 
+    for dungeonName, status in pairs(playerDungeonStatus) do
+        if status == "Available" then
+            table.insert(availableDungeons, dungeonName)
+            print(dungeonName.." is available")
+        else
+            dungeon = {
+                name = dungeonName,
+                status = status
+            }
+            table.insert(unavailableDungeons, dungeon)
+            print(dungeonName.." not available: "..status)
+        end
+    end
+
+    for _, dungeonName in pairs(availableDungeons) do
+        local testText = AceGUI:Create("Label")
+        -- testText:SetImage("Interface\\Icons\\inv_bannerpvp_01")
+        -- testText:SetImageSize(32, 32)
+        testText:SetText(dungeonName)
+        testText:SetColor(0, 255, 0)
+
+        frame:AddChild(testText)
+    end
+
+    for _, dungeon in pairs(unavailableDungeons) do
+        local testText = AceGUI:Create("Label")
+        testText:SetText(dungeon.name.." ("..dungeon.status..")")
+        testText:SetColor(255, 0, 0)
+
+        frame:AddChild(testText)
+    end
 end

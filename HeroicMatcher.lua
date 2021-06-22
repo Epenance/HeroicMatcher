@@ -155,9 +155,9 @@ function HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
     heroicDungeons["Auchindoun: Auchenai Crypts"] = {"Lower City"}
     heroicDungeons["Auchindoun: Sethekk Halls"] = {"Lower City"}
     heroicDungeons["Auchindoun: Shadow Labyrinth"] = {"Lower City"}
-    heroicDungeons["The Slave Pens"] = {"Cenarion Expedition"}
-    heroicDungeons["The Underbog"] = {"Cenarion Expedition"}
-    heroicDungeons["The Steamvault"] = {"Cenarion Expedition"}
+    heroicDungeons["Coilfang: The Slave Pens"] = {"Cenarion Expedition"}
+    heroicDungeons["Coilfang: The Underbog"] = {"Cenarion Expedition"}
+    heroicDungeons["Coilfang: The Steamvault"] = {"Cenarion Expedition"}
     heroicDungeons["Old Hillsbrad Foothills"] = {"Keepers of Time"}
     heroicDungeons["The Black Morass"] = {"Keepers of Time"}
     heroicDungeons["Tempest Keep: The Arcatraz"] = {"The Sha'tar"}
@@ -212,41 +212,103 @@ function HeroicMatcher:OpenFrame()
     hmlocal_frame:AddChild(syncDataBtn)
 end
 
+function HeroicMatcher:wat()
+    return 1, 2
+end
+
 function HeroicMatcher:AddDungeonInfoToFrame(frame)
-    availableDungeons = {}
-    unavailableDungeons = {}
+    print("Add to frame")
+    local availableDungeons, unavailableDungeons = HeroicMatcher:MapPartyDungeons()
 
-    for dungeonName, status in pairs(playerDungeonStatus) do
-        if status == "Available" then
-            table.insert(availableDungeons, dungeonName)
-            print(dungeonName.." is available")
-        else
-            dungeon = {
-                name = dungeonName,
-                status = status
-            }
-            table.insert(unavailableDungeons, dungeon)
-            print(dungeonName.." not available: "..status)
-        end
-    end
-
-    for _, dungeonName in pairs(availableDungeons) do
+    for _, dungeonName in ipairs(availableDungeons) do
+        print(dungeonName)
         local testText = AceGUI:Create("Label")
         -- testText:SetImage("Interface\\Icons\\inv_bannerpvp_01")
         -- testText:SetImageSize(32, 32)
         testText:SetText(dungeonName)
         testText:SetColor(0, 255, 0)
+        testText:SetFullWidth(true)
 
         frame:AddChild(testText)
     end
 
-    for _, dungeon in pairs(unavailableDungeons) do
+    for dungeonName, playerList in pairs(unavailableDungeons) do
         local testText = AceGUI:Create("Label")
-        testText:SetText(dungeon.name.." ("..dungeon.status..")")
+        testText:SetText(dungeonName.." "..playerList)
         testText:SetColor(255, 0, 0)
+        testText:SetFullWidth(true)
 
         frame:AddChild(testText)
     end
+end
+
+function HeroicMatcher:MapPartyDungeons()
+    tempDungeons = {}
+    availableDungeons = {}
+    unavailableDungeons = {}
+
+    playerName, _ = UnitName("player")
+
+    partyDungeonStatus[playerName] = playerDungeonStatus
+
+    for playerName, dungeons in pairs(partyDungeonStatus) do
+        for dungeonName, status in pairs(dungeons) do
+            if (tempDungeons[dungeonName] == nil) then
+                tempDungeons[dungeonName] = {
+                    available = {},
+                    missingReputation = {},
+                    saved = {}
+                }
+            end
+
+            if status == "Available" then
+                table.insert(tempDungeons[dungeonName].available, playerName)
+            elseif status == "Saved" then
+                table.insert(tempDungeons[dungeonName].saved, playerName)
+            else
+                table.insert(tempDungeons[dungeonName].missingReputation, playerName)
+            end
+        end
+    end
+
+    for dungeonName, data in pairs(tempDungeons) do
+        if (table.getn(data.saved) == 0 and table.getn(data.missingReputation) == 0) then
+            table.insert(availableDungeons, dungeonName)
+        else
+            local stringsToConcat = {}
+
+            if table.getn(data.available) > 0 then
+                local stringStart = "|cff00FF00"
+                local stringEnd = "|r"
+
+                local namesString = table.concat(data.available, ", ")
+
+                table.insert(stringsToConcat, stringStart..namesString..stringEnd)
+            end
+
+            if table.getn(data.saved) > 0 then
+                local stringStart = "|cffFF0000"
+                local stringEnd = "|r"
+
+                local namesString = table.concat(data.saved, ", ")
+
+                table.insert(stringsToConcat, stringStart..namesString..stringEnd)
+            end
+
+            if table.getn(data.missingReputation) > 0 then
+                local stringStart = "|cffFF0000"
+                local stringEnd = "|r"
+
+                local namesString = table.concat(data.missingReputation, ", ")
+
+                table.insert(stringsToConcat, stringStart..namesString..stringEnd)
+            end
+
+            unavailableDungeons[dungeonName] = "("..table.concat(stringsToConcat, ", ")..")"
+        end
+    end
+
+    return availableDungeons, unavailableDungeons
 end
 
 function HeroicMatcher:OnCommReceived(prefix, message, distribution, sender)

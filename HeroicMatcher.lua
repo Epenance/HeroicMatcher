@@ -13,11 +13,14 @@
 
 -- GROUP_ROSTER_CHANGED / PARTY_MEMBERS_CHANGED
 
-HeroicMatcher = LibStub("AceAddon-3.0"):NewAddon("HeroicMatcher", "AceTimer-3.0", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0")
+HeroicMatcher = LibStub("AceAddon-3.0"):NewAddon("HeroicMatcher", "AceTimer-3.0", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0")
 
 local AceGUI = LibStub("AceGUI-3.0")
 
+local EventPrefix = "HCM"
+
 local playerDungeonStatus = {}
+local partyDungeonStatus = {}
 
 local options = {
     name = 'HeroicMatcher',
@@ -54,7 +57,7 @@ local options = {
     }
 }
 
-local function hasValue (tab, val)
+local function isInArray (tab, val)
     for index, value in ipairs(tab) do
         if value == val then
             return true
@@ -73,6 +76,7 @@ function HeroicMatcher:OnInitialize()
     self.optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions('HeroicMatcher', 'HeroicMatcher')
     self:RegisterChatCommand('hm', 'ChatCommand')
     self:RegisterChatCommand('HeroicMatcher', 'ChatCommand')
+    self:RegisterComm(EventPrefix)
 
     -- Set default values
     HeroicMatcher.IS_RUNNING = false;
@@ -98,6 +102,10 @@ function HeroicMatcher:SyncStatus()
     heroicDungeons = HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
 
     playerDungeonStatus = heroicDungeons
+
+    local serializedDungeonStatus = HeroicMatcher:Serialize(playerDungeonStatus)
+    print("Sending sync event")
+    HeroicMatcher:SendCommMessage(EventPrefix, "PlayerSync|"..serializedDungeonStatus, "PARTY")
 end
 
 function HeroicMatcher:GetReveredFactions()
@@ -107,7 +115,7 @@ function HeroicMatcher:GetReveredFactions()
         name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
         canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(factionIndex)
 
-        if hasValue(factionsThatMatter, name) and earnedValue >= 21000 then
+        if isInArray(factionsThatMatter, name) and earnedValue >= 21000 then
             table.insert(reveredFactions, name)
             -- print("Faction: " .. name .. " - " .. earnedValue)
         end
@@ -164,7 +172,7 @@ function HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
         availableDungeons[key] = "Missing reputation"
         for _, faction in ipairs(dungeon) do
             -- If we are revered set true
-            if hasValue(reveredFactions, faction) then
+            if isInArray(reveredFactions, faction) then
                 availableDungeons[key] = "Available"
             end
         end
@@ -172,7 +180,7 @@ function HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
 
     for dungeon, isAvailable in pairs(availableDungeons) do
         if isAvailable == "Available" then
-            if hasValue(savedHeroics, dungeon) then
+            if isInArray(savedHeroics, dungeon) then
                 availableDungeons[dungeon] = "Saved"
                 -- print("Saved for "..dungeon)
             end
@@ -190,15 +198,15 @@ function HeroicMatcher:OpenFrame()
     hmlocal_frame:SetTitle("  HeroicMatcher")
     hmlocal_frame:SetStatusText("Made by Epenance")
 
-    hmlocal_frame:SetHeight(950)
-    hmlocal_frame:SetWidth(950)
+    hmlocal_frame:SetHeight(400)
+    hmlocal_frame:SetWidth(400)
 
     HeroicMatcher:AddDungeonInfoToFrame(hmlocal_frame)
 
     local syncDataBtn = AceGUI:Create("Button")
     syncDataBtn:SetText("Sync data")
     syncDataBtn:SetCallback("OnClick", function()
-        --
+        HeroicMatcher:SyncStatus()
 
     end)
     hmlocal_frame:AddChild(syncDataBtn)
@@ -239,4 +247,39 @@ function HeroicMatcher:AddDungeonInfoToFrame(frame)
 
         frame:AddChild(testText)
     end
+end
+
+function HeroicMatcher:OnCommReceived(prefix, message, distribution, sender)
+    print("Received event")
+    local serializedData = ""
+
+    if (prefix==EventPrefix) then
+        if string.find(message, "|") then
+            local amess = SplitAtSep(message, "|")
+            message = amess[1]
+            serializedData = amess[2]
+        end
+
+        if(message == "PlayerSync") then
+            status, data = HeroicMatcher:Deserialize(serializedData)
+
+            if status then
+                partyDungeonStatus[sender] = data
+            end
+        end
+
+
+    end
+end
+
+function SplitAtSep(str, sep)
+    local t = {}
+    local ind = string.find(str, sep)
+    while (ind ~= nil) do
+        table.insert(t, string.sub(str, 1, ind-1))
+        str = string.sub(str, ind+1)
+        ind = string.find(str, sep, 1, true)
+    end
+    if (str ~="") then table.insert(t, str) end
+    return t
 end

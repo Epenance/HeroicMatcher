@@ -148,9 +148,9 @@ function HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
     -- "Keepers of Time"
     -- "Honor Hold"
     heroicDungeons = {}
-    heroicDungeons["Hellfire Ramparts"] = {"Honor Hold", "Thrallmar"}
-    heroicDungeons["The Blood Furnace"] = {"Honor Hold", "Thrallmar"}
-    heroicDungeons["The Shattered Halls"] = {"Honor Hold", "Thrallmar"}
+    heroicDungeons["Hellfire Citadel: Ramparts"] = {"Honor Hold", "Thrallmar"}
+    heroicDungeons["Hellfire Citadel: The Blood Furnace"] = {"Honor Hold", "Thrallmar"}
+    heroicDungeons["Hellfire Citadel: The Shattered Halls"] = {"Honor Hold", "Thrallmar"}
     heroicDungeons["Auchindoun: Mana-Tombs"] = {"Lower City"}
     heroicDungeons["Auchindoun: Auchenai Crypts"] = {"Lower City"}
     heroicDungeons["Auchindoun: Sethekk Halls"] = {"Lower City"}

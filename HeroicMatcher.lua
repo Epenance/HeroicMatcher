@@ -143,10 +143,10 @@ function HeroicMatcher:GetAvailableDungeons(reveredFactions, savedHeroics)
     heroicDungeons["Hellfire Ramparts"] = {"Honor Hold", "Thrallmar"}
     heroicDungeons["The Blood Furnace"] = {"Honor Hold", "Thrallmar"}
     heroicDungeons["The Shattered Halls"] = {"Honor Hold", "Thrallmar"}
-    heroicDungeons["Mana-Tombs"] = {"Lower City"}
-    heroicDungeons["Auchenai Crypts"] = {"Lower City"}
-    heroicDungeons["Sethekk Halls"] = {"Lower City"}
-    heroicDungeons["Shadow Labyrinth"] = {"Lower City"}
+    heroicDungeons["Auchindoun: Mana-Tombs"] = {"Lower City"}
+    heroicDungeons["Auchindoun: Auchenai Crypts"] = {"Lower City"}
+    heroicDungeons["Auchindoun: Sethekk Halls"] = {"Lower City"}
+    heroicDungeons["Auchindoun: Shadow Labyrinth"] = {"Lower City"}
     heroicDungeons["The Slave Pens"] = {"Cenarion Expedition"}
     heroicDungeons["The Underbog"] = {"Cenarion Expedition"}
     heroicDungeons["The Steamvault"] = {"Cenarion Expedition"}
